@@ -15,10 +15,9 @@ namespace WorkoutManagement.Infrastructure
         public DbSet<Workout> Workouts { get; set; }
         public DbSet<Exercise> Exercises { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public WorkoutManagementDbContext(DbContextOptions<WorkoutManagementDbContext> options) : base(options)
         {
-            optionsBuilder
-                .UseSqlServer(@"Server=DESKTOP-SE9FATR\SQLEXPRESS;Database=WorkoutManagementDB;Trusted_Connection=True;TrustServerCertificate=True;");
+            
         }
     }
 }
