@@ -19,9 +19,10 @@ namespace WorkoutManagement.Domain.Models
         public string Name { get; set; } = "";
         public string? Description { get; set; }
         public DifficultyLevel Difficulty { get; set; }
-        public List<Workout> Workouts { get; set; }
 
-        public User User { get; set; }
-        public int UserId { get; set; }
+        public List<Workout> Workouts { get; set; } = null!;
+
+        public int? UserId { get; set; }
+        public User? User { get; set; }
     }
 }

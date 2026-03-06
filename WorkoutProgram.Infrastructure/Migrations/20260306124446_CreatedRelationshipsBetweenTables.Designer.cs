@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WorkoutManagement.Infrastructure;
 
@@ -11,9 +12,11 @@ using WorkoutManagement.Infrastructure;
 namespace WorkoutManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(WorkoutManagementDbContext))]
-    partial class WorkoutManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260306124446_CreatedRelationshipsBetweenTables")]
+    partial class CreatedRelationshipsBetweenTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
