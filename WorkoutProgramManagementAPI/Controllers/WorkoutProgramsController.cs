@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.Metrics;
 using WorkoutManagement.Domain.Models;
 using WorkoutManagement.Infrastructure;
+using WorkoutProgramManagementAPI.DTOs;
 
 namespace WorkoutProgramManagementAPI.Controllers;
 
@@ -19,32 +20,65 @@ public class WorkoutProgramsController : ControllerBase
 
     // api/workoutprograms
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<WorkoutProgram>>> GetWorkoutPrograms()
+    public async Task<ActionResult<IEnumerable<GetWorkoutProgramsDto>>> GetWorkoutPrograms()
     {
-        return await _workoutManagementDbContext.WorkoutPrograms.ToListAsync();
+        var workoutProgramsDto = await _workoutManagementDbContext.WorkoutPrograms
+            .Select(w => new GetWorkoutProgramsDto()
+            {
+                Id = w.Id,
+                Name = w.Name,
+                Description = w.Description,
+                Difficulty = w.Difficulty,
+            })
+            .ToListAsync();
+
+        return Ok(workoutProgramsDto);
     }
 
     // api/workoutprograms/1
     [HttpGet("{id}")]
-    public async Task<ActionResult<WorkoutProgram>> GetWorkoutProgram(int id)
+    public async Task<ActionResult<GetWorkoutProgramDto>> GetWorkoutProgram(int id)
     {
-        var workoutProgram = await _workoutManagementDbContext.WorkoutPrograms
-            .FindAsync(id);
-        if(workoutProgram is null)
+        var workoutProgramDto = await _workoutManagementDbContext.WorkoutPrograms
+            .Where(w => w.Id == id)
+            .Select(w => new GetWorkoutProgramDto()
+            {
+                Id = w.Id,
+                Name = w.Name,
+                Description = w.Description,
+                Difficulty = w.Difficulty,
+            })
+            .FirstOrDefaultAsync();
+
+        if(workoutProgramDto is null)
         {
             return NotFound("The workout program with the specified id was not found.");
         }
 
-        return Ok(workoutProgram);
+        return Ok(workoutProgramDto);
     }
 
     // api/workoutprograms
     [HttpPost]
-    public async Task<ActionResult> CreateWorkoutProgram(WorkoutProgram workoutProgram)
+    public async Task<ActionResult<GetWorkoutProgramDto>> CreateWorkoutProgram(CreateWorkoutProgramDto workoutProgramDto)
     {
+        var workoutProgram = new WorkoutProgram()
+        {
+            Name = workoutProgramDto.Name,
+            Description = workoutProgramDto.Description,
+            Difficulty = workoutProgramDto.Difficulty,
+        };
         _workoutManagementDbContext.WorkoutPrograms.Add(workoutProgram);
         await _workoutManagementDbContext.SaveChangesAsync();
 
-        return CreatedAtAction("GetWorkoutProgram", new { id = workoutProgram.Id }, workoutProgram);
+        var resultWorkoutProgramDto = new GetWorkoutProgramDto()
+        {
+            Id = workoutProgram.Id,
+            Name = workoutProgramDto.Name,
+            Description = workoutProgramDto.Description,
+            Difficulty = workoutProgramDto.Difficulty,
+        };
+
+        return CreatedAtAction("GetWorkoutProgram", new { id = resultWorkoutProgramDto.Id }, resultWorkoutProgramDto);
     }
 }
