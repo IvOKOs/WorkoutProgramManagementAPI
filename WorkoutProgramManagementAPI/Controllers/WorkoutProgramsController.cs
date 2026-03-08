@@ -1,10 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.Metrics;
-using WorkoutManagement.Domain.Models;
-using WorkoutManagement.Infrastructure;
+﻿using Microsoft.AspNetCore.Mvc;
 using WorkoutProgramManagementAPI.DTOs;
+using WorkoutProgramManagementAPI.Services;
 
 namespace WorkoutProgramManagementAPI.Controllers;
 
@@ -12,26 +8,18 @@ namespace WorkoutProgramManagementAPI.Controllers;
 [ApiController]
 public class WorkoutProgramsController : ControllerBase
 {
-    private readonly WorkoutManagementDbContext _workoutManagementDbContext;
-    public WorkoutProgramsController(WorkoutManagementDbContext workoutManagementDbContext)
+    private readonly IWorkoutProgramsService _workoutProgramsService;
+
+    public WorkoutProgramsController(IWorkoutProgramsService workoutProgramsService)
     {
-        _workoutManagementDbContext = workoutManagementDbContext;
+        _workoutProgramsService = workoutProgramsService;
     }
 
     // api/workoutprograms
     [HttpGet]
     public async Task<ActionResult<IEnumerable<GetWorkoutProgramsDto>>> GetWorkoutPrograms()
     {
-        var workoutProgramsDto = await _workoutManagementDbContext.WorkoutPrograms
-            .Select(w => new GetWorkoutProgramsDto()
-            {
-                Id = w.Id,
-                Name = w.Name,
-                Description = w.Description,
-                Difficulty = w.Difficulty,
-            })
-            .ToListAsync();
-
+        var workoutProgramsDto = await _workoutProgramsService.GetWorkoutProgramsAsync();
         return Ok(workoutProgramsDto);
     }
 
@@ -39,16 +27,7 @@ public class WorkoutProgramsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<GetWorkoutProgramDto>> GetWorkoutProgram(int id)
     {
-        var workoutProgramDto = await _workoutManagementDbContext.WorkoutPrograms
-            .Where(w => w.Id == id)
-            .Select(w => new GetWorkoutProgramDto()
-            {
-                Id = w.Id,
-                Name = w.Name,
-                Description = w.Description,
-                Difficulty = w.Difficulty,
-            })
-            .FirstOrDefaultAsync();
+        var workoutProgramDto = await _workoutProgramsService.GetWorkoutProgramAsync(id);
 
         if(workoutProgramDto is null)
         {
@@ -62,23 +41,10 @@ public class WorkoutProgramsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<GetWorkoutProgramDto>> CreateWorkoutProgram(CreateWorkoutProgramDto workoutProgramDto)
     {
-        var workoutProgram = new WorkoutProgram()
-        {
-            Name = workoutProgramDto.Name,
-            Description = workoutProgramDto.Description,
-            Difficulty = workoutProgramDto.Difficulty,
-        };
-        _workoutManagementDbContext.WorkoutPrograms.Add(workoutProgram);
-        await _workoutManagementDbContext.SaveChangesAsync();
+        var resultWorkoutProgramDto = await _workoutProgramsService.CreateWorkoutProgram(workoutProgramDto);
 
-        var resultWorkoutProgramDto = new GetWorkoutProgramDto()
-        {
-            Id = workoutProgram.Id,
-            Name = workoutProgramDto.Name,
-            Description = workoutProgramDto.Description,
-            Difficulty = workoutProgramDto.Difficulty,
-        };
-
-        return CreatedAtAction("GetWorkoutProgram", new { id = resultWorkoutProgramDto.Id }, resultWorkoutProgramDto);
+        return CreatedAtAction(nameof(GetWorkoutProgram),
+                               new { id = resultWorkoutProgramDto.Id },
+                               resultWorkoutProgramDto);
     }
 }
