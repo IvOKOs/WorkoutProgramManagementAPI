@@ -6,6 +6,6 @@ namespace WorkoutProgramManagementAPI.Services
     {
         Task<GetWorkoutProgramDto> CreateWorkoutProgram(CreateWorkoutProgramDto workoutProgramDto);
         Task<GetWorkoutProgramDto?> GetWorkoutProgramAsync(int id);
-        Task<IEnumerable<GetWorkoutProgramsDto>> GetWorkoutProgramsAsync();
+        Task<IEnumerable<GetWorkoutProgramDto>> GetWorkoutProgramsAsync();
     }
 }

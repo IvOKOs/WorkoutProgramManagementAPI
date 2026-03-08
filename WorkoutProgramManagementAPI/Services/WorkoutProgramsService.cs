@@ -1,29 +1,30 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using WorkoutManagement.Domain.Models;
 using WorkoutManagement.Infrastructure;
 using WorkoutProgramManagementAPI.DTOs;
+using WorkoutProgramManagementAPI.MappingProfiles;
 
 namespace WorkoutProgramManagementAPI.Services
 {
     public class WorkoutProgramsService : IWorkoutProgramsService
     {
         private readonly WorkoutManagementDbContext _workoutManagementDbContext;
+        private readonly IMapper _mapper;
 
-        public WorkoutProgramsService(WorkoutManagementDbContext workoutManagementDbContext)
+        public WorkoutProgramsService(WorkoutManagementDbContext workoutManagementDbContext,
+                                      IMapper mapper)
         {
             _workoutManagementDbContext = workoutManagementDbContext;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<GetWorkoutProgramsDto>> GetWorkoutProgramsAsync()
+
+        public async Task<IEnumerable<GetWorkoutProgramDto>> GetWorkoutProgramsAsync()
         {
             return await _workoutManagementDbContext.WorkoutPrograms
-            .Select(w => new GetWorkoutProgramsDto()
-            {
-                Id = w.Id,
-                Name = w.Name,
-                Description = w.Description,
-                Difficulty = w.Difficulty,
-            })
+            .ProjectTo<GetWorkoutProgramDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
         }
 
@@ -31,34 +32,17 @@ namespace WorkoutProgramManagementAPI.Services
         {
             return await _workoutManagementDbContext.WorkoutPrograms
             .Where(w => w.Id == id)
-            .Select(w => new GetWorkoutProgramDto()
-            {
-                Id = w.Id,
-                Name = w.Name,
-                Description = w.Description,
-                Difficulty = w.Difficulty,
-            })
+            .ProjectTo<GetWorkoutProgramDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
         }
 
         public async Task<GetWorkoutProgramDto> CreateWorkoutProgram(CreateWorkoutProgramDto workoutProgramDto)
         {
-            var workoutProgram = new WorkoutProgram()
-            {
-                Name = workoutProgramDto.Name,
-                Description = workoutProgramDto.Description,
-                Difficulty = workoutProgramDto.Difficulty,
-            };
+            var workoutProgram = _mapper.Map<WorkoutProgram>(workoutProgramDto);
             _workoutManagementDbContext.WorkoutPrograms.Add(workoutProgram);
             await _workoutManagementDbContext.SaveChangesAsync();
 
-            var resultWorkoutProgramDto = new GetWorkoutProgramDto()
-            {
-                Id = workoutProgram.Id,
-                Name = workoutProgramDto.Name,
-                Description = workoutProgramDto.Description,
-                Difficulty = workoutProgramDto.Difficulty,
-            };
+            var resultWorkoutProgramDto = _mapper.Map<GetWorkoutProgramDto>(workoutProgram);
             return resultWorkoutProgramDto;
         }
     }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WorkoutManagement.Infrastructure;
+using WorkoutProgramManagementAPI.MappingProfiles;
 using WorkoutProgramManagementAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<WorkoutManagementDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IWorkoutProgramsService, WorkoutProgramsService>();
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<WorkoutProgramMappingProfile>();
+});
 
 var app = builder.Build();
 
