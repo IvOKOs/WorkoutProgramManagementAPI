@@ -17,7 +17,7 @@ public class WorkoutProgramsController : ControllerBase
 
     // api/workoutprograms
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<GetWorkoutProgramsDto>>> GetWorkoutPrograms()
+    public async Task<ActionResult<IEnumerable<GetWorkoutProgramDto>>> GetWorkoutPrograms()
     {
         var workoutProgramsDto = await _workoutProgramsService.GetWorkoutProgramsAsync();
         return Ok(workoutProgramsDto);

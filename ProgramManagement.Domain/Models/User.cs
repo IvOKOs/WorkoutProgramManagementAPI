@@ -10,6 +10,7 @@ namespace WorkoutManagement.Domain.Models
     {
         public int Id { get; set; }
 
-        public List<WorkoutProgram>? WorkoutPrograms { get; set; }
+        public List<WorkoutProgram> WorkoutPrograms { get; set; } = new();
+        public List<WorkoutSession> WorkoutSessions { get; set; } = new();
     }
 }

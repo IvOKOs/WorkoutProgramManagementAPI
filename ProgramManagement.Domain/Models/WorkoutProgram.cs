@@ -20,7 +20,7 @@ namespace WorkoutManagement.Domain.Models
         public string? Description { get; set; }
         public DifficultyLevel Difficulty { get; set; }
 
-        public List<Workout> Workouts { get; set; } = null!;
+        public List<Workout> Workouts { get; set; } = new();
 
         public int? UserId { get; set; }
         public User? User { get; set; }
