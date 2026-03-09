@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using WorkoutManagement.Domain.Models;
-using WorkoutProgramManagementAPI.DTOs;
+using WorkoutProgramManagementAPI.DTOs.WorkoutProgramDtos;
 
 namespace WorkoutProgramManagementAPI.MappingProfiles
 {

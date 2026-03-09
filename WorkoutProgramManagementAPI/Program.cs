@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WorkoutManagement.Infrastructure;
 using WorkoutProgramManagementAPI.MappingProfiles;
-using WorkoutProgramManagementAPI.Services;
+using WorkoutProgramManagementAPI.Services.WorkoutPrograms;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -3,10 +3,10 @@ using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using WorkoutManagement.Domain.Models;
 using WorkoutManagement.Infrastructure;
-using WorkoutProgramManagementAPI.DTOs;
+using WorkoutProgramManagementAPI.DTOs.WorkoutProgramDtos;
 using WorkoutProgramManagementAPI.MappingProfiles;
 
-namespace WorkoutProgramManagementAPI.Services
+namespace WorkoutProgramManagementAPI.Services.WorkoutPrograms
 {
     public class WorkoutProgramsService : IWorkoutProgramsService
     {

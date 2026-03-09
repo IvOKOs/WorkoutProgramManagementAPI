@@ -1,6 +1,6 @@
-﻿using WorkoutProgramManagementAPI.DTOs;
+﻿using WorkoutProgramManagementAPI.DTOs.WorkoutProgramDtos;
 
-namespace WorkoutProgramManagementAPI.Services
+namespace WorkoutProgramManagementAPI.Services.WorkoutPrograms
 {
     public interface IWorkoutProgramsService
     {

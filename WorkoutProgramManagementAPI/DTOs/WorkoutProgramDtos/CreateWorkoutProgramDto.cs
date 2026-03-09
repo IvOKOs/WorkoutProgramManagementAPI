@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using WorkoutManagement.Domain.Models;
 
-namespace WorkoutProgramManagementAPI.DTOs
+namespace WorkoutProgramManagementAPI.DTOs.WorkoutProgramDtos
 {
     public class CreateWorkoutProgramDto
     {

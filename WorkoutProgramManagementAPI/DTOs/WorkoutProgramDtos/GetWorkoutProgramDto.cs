@@ -1,6 +1,6 @@
 ﻿using WorkoutManagement.Domain.Models;
 
-namespace WorkoutProgramManagementAPI.DTOs
+namespace WorkoutProgramManagementAPI.DTOs.WorkoutProgramDtos
 {
     public class GetWorkoutProgramDto
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WorkoutProgramManagementAPI.DTOs;
-using WorkoutProgramManagementAPI.Services;
+using WorkoutProgramManagementAPI.DTOs.WorkoutProgramDtos;
+using WorkoutProgramManagementAPI.Services.WorkoutPrograms;
 
 namespace WorkoutProgramManagementAPI.Controllers;
 
