@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using WorkoutManagement.Domain.Models;
 using WorkoutProgramManagementAPI.DTOs.WorkoutProgramDtos;
+using WorkoutProgramManagementAPI.DTOs.WorkoutSessionDtos;
 
 namespace WorkoutProgramManagementAPI.MappingProfiles
 {
@@ -8,9 +9,11 @@ namespace WorkoutProgramManagementAPI.MappingProfiles
     {
         public WorkoutProgramMappingProfile()
         {
+            // do for the reverse too
             CreateMap<WorkoutProgram, GetWorkoutProgramDto>();
-            // do the reverse
             CreateMap<WorkoutProgram, CreateWorkoutProgramDto>();
+
+            CreateMap<WorkoutSession, GetWorkoutSessionDto>();
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace WorkoutProgramManagementAPI.DTOs.WorkoutSessionDtos;
 
-public class CreateWorkoutSessionDto
+public class GetWorkoutSessionDto
 {
     public int Id { get; set; }
     public DateTime? StartedAt { get; set; }

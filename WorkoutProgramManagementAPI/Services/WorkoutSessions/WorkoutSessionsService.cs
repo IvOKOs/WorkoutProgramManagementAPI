@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using WorkoutManagement.Domain.Models;
@@ -7,19 +8,25 @@ using WorkoutProgramManagementAPI.DTOs.WorkoutSessionDtos;
 
 namespace WorkoutProgramManagementAPI.Services.WorkoutSessions;
 
-public class WorkoutSessionsService
+public class WorkoutSessionsService : IWorkoutSessionsService
 {
     private readonly WorkoutManagementDbContext _workoutManagementDbContext;
+    private readonly IMapper _mapper;
 
-    public WorkoutSessionsService(WorkoutManagementDbContext workoutManagementDbContext)
+    public WorkoutSessionsService(WorkoutManagementDbContext workoutManagementDbContext,
+                                  IMapper mapper)
     {
         _workoutManagementDbContext = workoutManagementDbContext;
+        _mapper = mapper;
     }
 
 
-    public async Task<ActionResult<CreateWorkoutSessionDto>?> StartWorkoutSession(int userId, int workoutId)
+    public async Task<GetWorkoutSessionDto?> StartWorkoutSession(int userId, int workoutId)
     {
-        var workout = await _workoutManagementDbContext.Workouts.FindAsync(workoutId);
+        var workout = await _workoutManagementDbContext.Workouts
+                            .Include(w => w.WorkoutExercises)
+                                .ThenInclude(we => we.Exercise)
+                            .FirstOrDefaultAsync(w => w.Id == workoutId);
         if (workout is null) return null;
 
         var workoutSession = new WorkoutSession()
@@ -32,15 +39,10 @@ public class WorkoutSessionsService
         _workoutManagementDbContext.WorkoutSessions.Add(workoutSession);
         await _workoutManagementDbContext.SaveChangesAsync();
 
-        var workoutSessionDto = new CreateWorkoutSessionDto()
-        {
-            Id = workoutSession.Id,
-            StartedAt = workoutSession.StartedAt,
-            Status = workoutSession.Status,
-        };
+        var workoutSessionDto = _mapper.Map<GetWorkoutSessionDto>(workoutSession);
 
         List<ExerciseSession> exerciseSessions = new List<ExerciseSession>();
-        foreach(var workoutExercise in workout.WorkoutExercises)
+        foreach (var workoutExercise in workout.WorkoutExercises)
         {
             var exerciseSession = new ExerciseSession()
             {
@@ -57,22 +59,11 @@ public class WorkoutSessionsService
         await _workoutManagementDbContext.SaveChangesAsync();
         return workoutSessionDto;
     }
-    public async Task<bool> UserExists(int id)
+
+    public async Task<bool> WorkoutSessionExists(int id)
     {
-        var user = await _workoutManagementDbContext.Users.FindAsync(id);
-        return user is null ? false : true;
+        var workoutSession = await _workoutManagementDbContext.WorkoutSessions.FindAsync(id);
+        return workoutSession is null ? false : true;
     }
 
-    public async Task<bool> WorkoutExists(int id)
-    {
-        var workout = await _workoutManagementDbContext.Workouts.FindAsync(id);
-        return workout is null ? false : true;
-    }
-
-    public async Task<bool> HasActiveWorkoutSession(int userId)
-    {
-        return await _workoutManagementDbContext.WorkoutSessions
-            .Where(w => w.UserId == userId)
-            .AnyAsync(w => w.Status == WorkoutStatus.InProgress);
-    }
 }

@@ -1,6 +1,27 @@
-@WorkoutProgramManagementAPI_HostAddress = http://localhost:5081
+@WorkoutProgramManagementAPI_HostAddress = https://localhost:7063
 
-GET {{WorkoutProgramManagementAPI_HostAddress}}/weatherforecast/
-Accept: application/json
+
+GET {{WorkoutProgramManagementAPI_HostAddress}}/api/workoutprograms
+
+###
+
+POST {{WorkoutProgramManagementAPI_HostAddress}}/api/workoutprograms
+Content-Type: application/json
+
+{
+  //CreateWorkoutProgramDto
+}
+
+###
+
+@id=0
+GET {{WorkoutProgramManagementAPI_HostAddress}}/api/workoutprograms/{{id}}
+
+###
+
+
+@userId=1
+@workoutId=1
+POST {{WorkoutProgramManagementAPI_HostAddress}}/users/{{userId}}/workouts/{{workoutId}}/workoutsessions/start
 
 ###
