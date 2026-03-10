@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WorkoutManagement.Domain.Models;
+using WorkoutProgramManagementAPI.DTOs.ExerciseSessionsDtos;
 using WorkoutProgramManagementAPI.DTOs.WorkoutSessionDtos;
+using WorkoutProgramManagementAPI.Services.ExerciseSessions;
 using WorkoutProgramManagementAPI.Services.Users;
 using WorkoutProgramManagementAPI.Services.Workouts;
 using WorkoutProgramManagementAPI.Services.WorkoutSessions;
@@ -15,14 +17,17 @@ public class WorkoutSessionsController : ControllerBase
     private readonly IUsersService _usersService;
     private readonly IWorkoutsService _workoutsService;
     private readonly IWorkoutSessionsService _workoutSessionsService;
+    private readonly IExerciseSessionsService _exerciseSessionsService;
 
     public WorkoutSessionsController(IUsersService usersService,
                                      IWorkoutsService workoutsService,
-                                     IWorkoutSessionsService workoutSessionsService)
+                                     IWorkoutSessionsService workoutSessionsService,
+                                     IExerciseSessionsService exerciseSessionsService)
     {
         _usersService = usersService;
         _workoutsService = workoutsService;
         _workoutSessionsService = workoutSessionsService;
+        _exerciseSessionsService = exerciseSessionsService;
     }
 
 
@@ -56,10 +61,24 @@ public class WorkoutSessionsController : ControllerBase
     }
 
 
-    [HttpPost("/workoutsessions/{workoutSessionId}/complete")]
+    [HttpPost("{workoutSessionId}/complete")]
     public async Task<ActionResult> CompleteWorkoutSession(int workoutSessionId,
-                                                           [FromBody] List<ExerciseSession> exercises)
+                                                           [FromBody] CompleteWorkoutSessionDto completeSessionDto)
     {
+        var workoutSession = await _workoutSessionsService.GetWorkoutSession(workoutSessionId);
+        if (workoutSession is null)
+        {
+            return NotFound("Workout session with the given id does not exist.");
+        }
+        if(workoutSession.Status != WorkoutStatus.InProgress)
+        {
+            return BadRequest("Workout session with the given id is not currently active.");
+        }
 
+        var areSessionsUpdated = await _exerciseSessionsService.UpdateExerciseSessions(completeSessionDto.Exercises);
+        if (!areSessionsUpdated) return BadRequest("Exercise sessions could not be updated.");
+
+        await _workoutSessionsService.CompleteSession(workoutSession);
+        return Ok();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using System.Threading.Tasks;
 using WorkoutManagement.Domain.Models;
 using WorkoutManagement.Infrastructure;
@@ -60,10 +61,15 @@ public class WorkoutSessionsService : IWorkoutSessionsService
         return workoutSessionDto;
     }
 
-    public async Task<bool> WorkoutSessionExists(int id)
+    public async Task<WorkoutSession?> GetWorkoutSession(int id)
     {
-        var workoutSession = await _workoutManagementDbContext.WorkoutSessions.FindAsync(id);
-        return workoutSession is null ? false : true;
+        return await _workoutManagementDbContext.WorkoutSessions.FindAsync(id);
     }
 
+    public async Task CompleteSession(WorkoutSession workoutSession)
+    {
+        workoutSession.CompletedAt = DateTime.UtcNow;
+        workoutSession.Status = WorkoutStatus.Completed;
+        await _workoutManagementDbContext.SaveChangesAsync();
+    }
 }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WorkoutManagement.Infrastructure;
 using WorkoutProgramManagementAPI.MappingProfiles;
+using WorkoutProgramManagementAPI.Services.ExerciseSessions;
 using WorkoutProgramManagementAPI.Services.Users;
 using WorkoutProgramManagementAPI.Services.WorkoutPrograms;
 using WorkoutProgramManagementAPI.Services.Workouts;
@@ -25,6 +26,7 @@ builder.Services.AddScoped<IWorkoutProgramsService, WorkoutProgramsService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IWorkoutsService, WorkoutsService>();
 builder.Services.AddScoped<IWorkoutSessionsService, WorkoutSessionsService>();
+builder.Services.AddScoped<IExerciseSessionsService, ExerciseSessionsService>();
 
 var app = builder.Build();
 
