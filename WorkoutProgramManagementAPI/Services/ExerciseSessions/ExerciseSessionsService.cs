@@ -1,6 +1,7 @@
 ﻿using WorkoutManagement.Domain.Models;
 using WorkoutManagement.Infrastructure;
 using WorkoutProgramManagementAPI.DTOs.ExerciseSessionsDtos;
+using WorkoutProgramManagementAPI.Shared.Result;
 
 namespace WorkoutProgramManagementAPI.Services.ExerciseSessions;
 
@@ -13,17 +14,21 @@ public class ExerciseSessionsService : IExerciseSessionsService
         _workoutManagementDbContext = workoutManagementDbContext;
     }
 
+
     public async Task<ExerciseSession?> GetExerciseSession(int id)
     {
         return await _workoutManagementDbContext.ExerciseSessions.FindAsync(id);
     }
 
-    public async Task<bool> UpdateExerciseSessions(List<CreateExerciseSessionDto> createExerciseSessionDtos)
+    public async Task<Result> UpdateExerciseSessions(List<CreateExerciseSessionDto> createExerciseSessionDtos)
     {
         foreach (var exerciseSessionDto in createExerciseSessionDtos)
         {
             var exerciseSession = await GetExerciseSession(exerciseSessionDto.Id);
-            if (exerciseSession is null) return false;
+            if (exerciseSession is null)
+            {
+                return Result.Failure(ExerciseSessionsError.NotFound);
+            }
             foreach(var exerciseSetDto in exerciseSessionDto.Sets)
             {
                 var exerciseSet = new ExerciseSet()
@@ -38,6 +43,6 @@ public class ExerciseSessionsService : IExerciseSessionsService
             }
         }
         await _workoutManagementDbContext.SaveChangesAsync();
-        return true;
+        return Result.Success();
     }
 }

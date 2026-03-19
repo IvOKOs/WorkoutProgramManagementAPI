@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WorkoutManagement.Domain.Models;
 using WorkoutManagement.Infrastructure;
 using WorkoutProgramManagementAPI.DTOs.WorkoutSessionDtos;
+using WorkoutProgramManagementAPI.Shared.Result;
 
 namespace WorkoutProgramManagementAPI.Services.WorkoutSessions;
 
@@ -22,13 +23,14 @@ public class WorkoutSessionsService : IWorkoutSessionsService
     }
 
 
-    public async Task<GetWorkoutSessionDto?> StartWorkoutSession(int userId, int workoutId)
+    public async Task<Result<GetWorkoutSessionDto?>> StartWorkoutSession(int userId, int workoutId)
     {
         var workout = await _workoutManagementDbContext.Workouts
                             .Include(w => w.WorkoutExercises)
                                 .ThenInclude(we => we.Exercise)
                             .FirstOrDefaultAsync(w => w.Id == workoutId);
-        if (workout is null) return null;
+        if (workout is null) 
+            return Result<GetWorkoutSessionDto?>.Failure(WorkoutSessionsError.NotFound);
 
         var workoutSession = new WorkoutSession()
         {
@@ -42,7 +44,7 @@ public class WorkoutSessionsService : IWorkoutSessionsService
 
         var workoutSessionDto = _mapper.Map<GetWorkoutSessionDto>(workoutSession);
 
-        List<ExerciseSession> exerciseSessions = new List<ExerciseSession>();
+        List<ExerciseSession> exerciseSessions = [];
         foreach (var workoutExercise in workout.WorkoutExercises)
         {
             var exerciseSession = new ExerciseSession()
@@ -58,7 +60,7 @@ public class WorkoutSessionsService : IWorkoutSessionsService
         }
         await _workoutManagementDbContext.ExerciseSessions.AddRangeAsync(exerciseSessions);
         await _workoutManagementDbContext.SaveChangesAsync();
-        return workoutSessionDto;
+        return Result<GetWorkoutSessionDto?>.Success(workoutSessionDto);
     }
 
     public async Task<WorkoutSession?> GetWorkoutSession(int id)
