@@ -53,24 +53,52 @@ public class WorkoutSessionsService : IWorkoutSessionsService
         {
             return Result.Failure(WorkoutSessionsError.InProgress);
         }
-        var exerciseSessionsResult = await UpdateExerciseSessions(completeSessionDto.Exercises);
-        if (exerciseSessionsResult.IsFailure)
-            return exerciseSessionsResult;
-        await CompleteSession(workoutSession);
+
+        await using var transaction = await _workoutManagementDbContext.Database.BeginTransactionAsync();
+        try
+        {
+            var exerciseSessionsResult = await UpdateExerciseSessions(completeSessionDto.Exercises,
+                                                                      workoutSessionId);
+            if (exerciseSessionsResult.IsFailure)
+                return exerciseSessionsResult;
+            await CompleteSession(workoutSession);
+
+            await _workoutManagementDbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+        
         return Result.Success();
     }
 
 
-    private async Task<Result> UpdateExerciseSessions(List<CreateExerciseSessionDto> createExerciseSessionDtos)
+    private async Task<Result> UpdateExerciseSessions(List<CreateExerciseSessionDto> createExerciseSessionDtos,
+                                                      int workoutSessionId)
     {
         // improve it -> batch loading and using transaction to update
+        var exerciseSessionIds = createExerciseSessionDtos
+            .Select(sessionDto => sessionDto.Id)
+            .ToList();
+
+        var exerciseSessions = await _workoutManagementDbContext.ExerciseSessions
+            .Where(session => exerciseSessionIds.Contains(session.Id))
+            .ToListAsync();
+
+        if(exerciseSessionIds.Count != exerciseSessions.Count)
+        {
+            return Result.Failure(ExerciseSessionsError.NotFound);
+        }
+        // complexity - O(n^2)
         foreach (var exerciseSessionDto in createExerciseSessionDtos)
         {
-            var exerciseSession = await _workoutManagementDbContext.ExerciseSessions.FindAsync(exerciseSessionDto.Id);
-            if (exerciseSession is null)
-            {
-                return Result.Failure(ExerciseSessionsError.NotFound);
-            }
+            var exerciseSession = exerciseSessions.First(session => session.Id == exerciseSessionDto.Id);
+            if (exerciseSession.WorkoutSessionId != workoutSessionId)
+                return Result.Failure(ExerciseSessionsError.InvalidSession);
+
             foreach (var exerciseSetDto in exerciseSessionDto.Sets)
             {
                 var exerciseSet = new ExerciseSet()
@@ -79,12 +107,11 @@ public class WorkoutSessionsService : IWorkoutSessionsService
                     ActualReps = exerciseSetDto.ActualReps,
                     Weight = exerciseSetDto.Weight,
                     RestTimeSeconds = exerciseSetDto.RestTimeSeconds,
-                    ExerciseSessionId = exerciseSession.Id,
+                    ExerciseSessionId = exerciseSessionDto.Id,
                 };
                 exerciseSession.PerformedSets.Add(exerciseSet);
             }
         }
-        await _workoutManagementDbContext.SaveChangesAsync();
         return Result.Success();
     }
 
