@@ -7,6 +7,7 @@ using WorkoutProgramManagementAPI.Services.ExerciseSessions;
 using WorkoutProgramManagementAPI.Services.Users;
 using WorkoutProgramManagementAPI.Services.Workouts;
 using WorkoutProgramManagementAPI.Services.WorkoutSessions;
+using WorkoutProgramManagementAPI.Shared.Result;
 
 namespace WorkoutProgramManagementAPI.Controllers;
 
@@ -75,8 +76,10 @@ public class WorkoutSessionsController : ControllerBase
             return BadRequest("Workout session with the given id is not currently active.");
         }
 
-        var areSessionsUpdated = await _exerciseSessionsService.UpdateExerciseSessions(completeSessionDto.Exercises);
-        if (!areSessionsUpdated) return BadRequest("Exercise sessions could not be updated.");
+        var updateSessionsResult = await _exerciseSessionsService.UpdateExerciseSessions(completeSessionDto.Exercises);
+        if (updateSessionsResult.IsFailure && 
+            updateSessionsResult.Error == ExerciseSessionsError.NotFound) 
+            return NotFound("Exercise sessions could not be updated. An exercise session was not found.");
 
         await _workoutSessionsService.CompleteSession(workoutSession);
         return Ok();
