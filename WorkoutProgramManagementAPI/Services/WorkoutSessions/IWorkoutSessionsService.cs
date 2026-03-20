@@ -8,5 +8,6 @@ namespace WorkoutProgramManagementAPI.Services.WorkoutSessions
     {
         Task<Result<GetWorkoutSessionDto?>> StartWorkoutSession(int userId, int workoutId);
         Task<Result> EndWorkoutSession(int workoutSessionId, CompleteWorkoutSessionDto completeSessionDto);
+        
     }
 }
