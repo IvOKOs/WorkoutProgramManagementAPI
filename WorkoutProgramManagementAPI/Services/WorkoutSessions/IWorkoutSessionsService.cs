@@ -7,7 +7,6 @@ namespace WorkoutProgramManagementAPI.Services.WorkoutSessions
     public interface IWorkoutSessionsService
     {
         Task<Result<GetWorkoutSessionDto?>> StartWorkoutSession(int userId, int workoutId);
-        Task<WorkoutSession?> GetWorkoutSession(int id);
-        Task CompleteSession(WorkoutSession workoutSession);
+        Task<Result> EndWorkoutSession(int workoutSessionId, CompleteWorkoutSessionDto completeSessionDto);
     }
 }

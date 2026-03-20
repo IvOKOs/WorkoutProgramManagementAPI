@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WorkoutProgramManagementAPI.DTOs.WorkoutProgramDtos;
 using WorkoutProgramManagementAPI.Services.WorkoutPrograms;
+using WorkoutProgramManagementAPI.Shared.Result;
 
 namespace WorkoutProgramManagementAPI.Controllers;
 
@@ -15,29 +16,36 @@ public class WorkoutProgramsController : ControllerBase
         _workoutProgramsService = workoutProgramsService;
     }
 
-    // api/workoutprograms
     [HttpGet]
     public async Task<ActionResult<IEnumerable<GetWorkoutProgramDto>>> GetWorkoutPrograms()
     {
-        var workoutProgramsDto = await _workoutProgramsService.GetWorkoutProgramsAsync();
-        return Ok(workoutProgramsDto);
+        var workoutProgramsResult = await _workoutProgramsService.GetWorkoutPrograms();
+        if (workoutProgramsResult.IsFailure)
+        {
+            var errorDescription = workoutProgramsResult.Error.Description;
+            if (workoutProgramsResult.Error == WorkoutProgramError.NotFound)
+                return NotFound(errorDescription ?? "No workout programs were found.");
+            return StatusCode(500);
+        }
+        return Ok(workoutProgramsResult.Value);
     }
 
-    // api/workoutprograms/1
     [HttpGet("{id}")]
     public async Task<ActionResult<GetWorkoutProgramDto>> GetWorkoutProgram(int id)
     {
-        var workoutProgramDto = await _workoutProgramsService.GetWorkoutProgramAsync(id);
+        var workoutProgramResult = await _workoutProgramsService.GetWorkoutProgram(id);
 
-        if(workoutProgramDto is null)
+        if(workoutProgramResult.IsFailure)
         {
-            return NotFound("The workout program with the specified id was not found.");
+            var errorDescription = workoutProgramResult.Error.Description;
+            if (workoutProgramResult.Error == WorkoutProgramError.NotFound)
+                return NotFound(errorDescription ?? "The workout program with the specified id was not found.");
+            return StatusCode(500);
         }
 
-        return Ok(workoutProgramDto);
+        return Ok(workoutProgramResult.Value);
     }
 
-    // api/workoutprograms
     [HttpPost]
     public async Task<ActionResult<GetWorkoutProgramDto>> CreateWorkoutProgram(CreateWorkoutProgramDto workoutProgramDto)
     {

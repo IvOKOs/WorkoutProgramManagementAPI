@@ -1,10 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WorkoutManagement.Infrastructure;
 using WorkoutProgramManagementAPI.MappingProfiles;
-using WorkoutProgramManagementAPI.Services.ExerciseSessions;
-using WorkoutProgramManagementAPI.Services.Users;
 using WorkoutProgramManagementAPI.Services.WorkoutPrograms;
-using WorkoutProgramManagementAPI.Services.Workouts;
 using WorkoutProgramManagementAPI.Services.WorkoutSessions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +12,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<WorkoutManagementDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddAutoMapper(cfg =>
@@ -23,10 +21,7 @@ builder.Services.AddAutoMapper(cfg =>
 });
 
 builder.Services.AddScoped<IWorkoutProgramsService, WorkoutProgramsService>();
-builder.Services.AddScoped<IUsersService, UsersService>();
-builder.Services.AddScoped<IWorkoutsService, WorkoutsService>();
 builder.Services.AddScoped<IWorkoutSessionsService, WorkoutSessionsService>();
-builder.Services.AddScoped<IExerciseSessionsService, ExerciseSessionsService>();
 
 var app = builder.Build();
 

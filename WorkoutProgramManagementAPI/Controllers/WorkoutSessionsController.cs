@@ -1,11 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using WorkoutManagement.Domain.Models;
-using WorkoutProgramManagementAPI.DTOs.ExerciseSessionsDtos;
+﻿using Microsoft.AspNetCore.Mvc;
 using WorkoutProgramManagementAPI.DTOs.WorkoutSessionDtos;
-using WorkoutProgramManagementAPI.Services.ExerciseSessions;
-using WorkoutProgramManagementAPI.Services.Users;
-using WorkoutProgramManagementAPI.Services.Workouts;
 using WorkoutProgramManagementAPI.Services.WorkoutSessions;
 using WorkoutProgramManagementAPI.Shared.Result;
 
@@ -15,20 +9,11 @@ namespace WorkoutProgramManagementAPI.Controllers;
 [ApiController]
 public class WorkoutSessionsController : ControllerBase
 {
-    private readonly IUsersService _usersService;
-    private readonly IWorkoutsService _workoutsService;
     private readonly IWorkoutSessionsService _workoutSessionsService;
-    private readonly IExerciseSessionsService _exerciseSessionsService;
 
-    public WorkoutSessionsController(IUsersService usersService,
-                                     IWorkoutsService workoutsService,
-                                     IWorkoutSessionsService workoutSessionsService,
-                                     IExerciseSessionsService exerciseSessionsService)
+    public WorkoutSessionsController(IWorkoutSessionsService workoutSessionsService)
     {
-        _usersService = usersService;
-        _workoutsService = workoutsService;
         _workoutSessionsService = workoutSessionsService;
-        _exerciseSessionsService = exerciseSessionsService;
     }
 
 
@@ -36,28 +21,17 @@ public class WorkoutSessionsController : ControllerBase
     public async Task<ActionResult<GetWorkoutSessionDto>> CreateWorkoutSession(int userId,
                                                                                int workoutId)
     {
-        var userExists = await _usersService.UserExists(userId);
-        if (!userExists)
+        var workoutSessionResult = await _workoutSessionsService.StartWorkoutSession(userId, workoutId);
+        if (workoutSessionResult.IsFailure)
         {
-            return NotFound("User with the given id does not exist.");
+            var errorDescription = workoutSessionResult.Error.Description;
+            if (workoutSessionResult.Error == UserErrors.NotExists)
+                return BadRequest(errorDescription ?? "User does not exist.");
+            if (workoutSessionResult.Error == UserErrors.AlreadyHasActiveWorkoutSession)
+                return BadRequest(errorDescription ?? "User has already an active workout session.");
+            return StatusCode(500);
         }
-
-        var hasActiveWorkout = await _usersService.HasActiveWorkoutSession(userId);
-        if (hasActiveWorkout)
-        {
-            return BadRequest("User has already an active workout. Please, try again later.");
-        }
-
-        var workoutExists = await _workoutsService.WorkoutExists(workoutId);
-        if (!workoutExists)
-        {
-            return NotFound("Workout with the given id does not exist.");
-        }
-        var createdWorkoutSession = await _workoutSessionsService.StartWorkoutSession(userId, workoutId);
-        if(createdWorkoutSession is null)
-        {
-            return BadRequest("WorkoutSession could not be created.");
-        }
+        var createdWorkoutSession = workoutSessionResult.Value;
         return Ok(createdWorkoutSession);
     }
 
@@ -66,22 +40,19 @@ public class WorkoutSessionsController : ControllerBase
     public async Task<ActionResult> CompleteWorkoutSession(int workoutSessionId,
                                                            [FromBody] CompleteWorkoutSessionDto completeSessionDto)
     {
-        var workoutSession = await _workoutSessionsService.GetWorkoutSession(workoutSessionId);
-        if (workoutSession is null)
+        var workoutSessionResult = await _workoutSessionsService.EndWorkoutSession(workoutSessionId,
+                                                                                   completeSessionDto);
+        if (workoutSessionResult.IsFailure)
         {
-            return NotFound("Workout session with the given id does not exist.");
+            var errorDescription = workoutSessionResult.Error.Description;
+            if (workoutSessionResult.Error == WorkoutSessionsError.NotFound)
+                return NotFound($"Workout session with id {workoutSessionId} was not found.");
+            if (workoutSessionResult.Error == WorkoutSessionsError.InProgress)
+                return BadRequest($"Workout session with id {workoutSessionId} is currently in progress. It has already been started.");
+            if (workoutSessionResult.Error == ExerciseSessionsError.NotFound)
+                return NotFound(errorDescription ?? "Exercise session was not found.");
+            return StatusCode(500);
         }
-        if(workoutSession.Status != WorkoutStatus.InProgress)
-        {
-            return BadRequest("Workout session with the given id is not currently active.");
-        }
-
-        var updateSessionsResult = await _exerciseSessionsService.UpdateExerciseSessions(completeSessionDto.Exercises);
-        if (updateSessionsResult.IsFailure && 
-            updateSessionsResult.Error == ExerciseSessionsError.NotFound) 
-            return NotFound("Exercise sessions could not be updated. An exercise session was not found.");
-
-        await _workoutSessionsService.CompleteSession(workoutSession);
         return Ok();
     }
 }
